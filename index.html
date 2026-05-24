@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Fraud Detection AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i data-lucide="shield-check" class="logo-icon"></i>
+                <h2>TrustUPI AI</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-view="scanner">
+                    <i data-lucide="scan-line"></i> Scanner
+                </a>
+                <a href="#" class="nav-item" data-view="history">
+                    <i data-lucide="history"></i> History
+                </a>
+                <a href="#" class="nav-item" data-view="dashboard">
+                    <i data-lucide="layout-dashboard"></i> Dashboard
+                </a>
+            </nav>
+
+            <div class="api-status">
+                <div class="status-indicator"></div>
+                <span>AI Engine Active</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <h1>AI Payment Verification</h1>
+                <p>Upload UPI screenshots to detect fraud, manipulations, and common scams instantly.</p>
+            </header>
+
+            <!-- Views Container -->
+            <div id="view-scanner" class="view-section active">
+                
+                <div class="scanner-layout">
+                    <!-- Left: Upload Zone -->
+                    <div class="upload-section">
+                        <div id="drop-zone" class="drop-zone">
+                            <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp" hidden>
+                            <div class="drop-content">
+                                <div class="upload-icon-pulse">
+                                    <i data-lucide="upload-cloud"></i>
+                                </div>
+                                <h3>Drag & Drop Screenshot</h3>
+                                <p>or click to browse from your device</p>
+                                <span class="file-hint">Supports JPG, PNG, WEBP (Max 15MB)</span>
+                            </div>
+                            <img id="image-preview" src="" alt="Preview" style="display: none;">
+                        </div>
+                        
+                        <div class="action-buttons" style="display: none;" id="action-buttons">
+                            <button class="btn btn-secondary" id="btn-clear">
+                                <i data-lucide="trash-2"></i> Clear
+                            </button>
+                            <button class="btn btn-primary" id="btn-analyze">
+                                <i data-lucide="zap"></i> Analyze Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Analysis Results -->
+                    <div class="results-section">
+                        <!-- Loading State -->
+                        <div class="loading-state" id="loading-state" style="display: none;">
+                            <div class="scanning-animation">
+                                <div class="scan-line"></div>
+                                <i data-lucide="fingerprint" class="fingerprint-icon"></i>
+                            </div>
+                            <h3>Analyzing Screenshot...</h3>
+                            <ul class="loading-steps">
+                                <li><i data-lucide="check-circle-2"></i> Reading image data</li>
+                                <li><i data-lucide="check-circle-2"></i> Running ELA forensics</li>
+                                <li><i data-lucide="check-circle-2"></i> Checking heuristic rules</li>
+                                <li><i data-lucide="loader-2" class="spin"></i> Querying Gemini Vision AI</li>
+                            </ul>
+                        </div>
+
+                        <!-- Results Data -->
+                        <div class="results-data" id="results-data" style="display: none;">
+                            
+                            <!-- Verdict Card -->
+                            <div class="verdict-card" id="verdict-card">
+                                <div class="verdict-header">
+                                    <div class="verdict-badge" id="verdict-badge">
+                                        <i data-lucide="alert-triangle"></i> FRAUD
+                                    </div>
+                                    <div class="confidence-ring" id="confidence-ring">
+                                        <svg viewBox="0 0 36 36" class="circular-chart">
+                                            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                            <path class="circle" stroke-dasharray="85, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                            <text x="18" y="20.35" class="percentage">85%</text>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ai-summary" id="ai-summary">
+                                    <p>AI detected a Google Pay rewards notification disguised as a payment. No money was actually transferred.</p>
+                                </div>
+                            </div>
+
+                            <!-- Extracted Info -->
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <span class="label">Amount</span>
+                                    <span class="value amount" id="info-amount">₹0.00</span>
+                                </div>
+                                <div class="info-card">
+                                    <span class="label">App Detected</span>
+                                    <span class="value" id="info-app">Unknown</span>
+                                </div>
+                                <div class="info-card full-width">
+                                    <span class="label">Transaction ID / UTR</span>
+                                    <span class="value mono" id="info-utr">Not Found</span>
+                                </div>
+                            </div>
+
+                            <!-- Risk Factors -->
+                            <div class="risk-factors">
+                                <h3>Detection Reasons</h3>
+                                <div class="reasons-list" id="reasons-list">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+
+                            <!-- ELA View -->
+                            <div class="ela-view" id="ela-container">
+                                <h3>Forensic ELA Map</h3>
+                                <img id="ela-image" src="" alt="ELA Map">
+                                <p class="caption">Bright areas indicate potential manipulation.</p>
+                            </div>
+
+                        </div>
+                        
+                        <!-- Initial State -->
+                        <div class="empty-state" id="empty-results">
+                            <i data-lucide="shield-question"></i>
+                            <p>Upload a screenshot to see AI fraud analysis results here.</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="view-history" class="view-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Scans</h2>
+                        <button class="btn btn-outline" id="refresh-history">
+                            <i data-lucide="refresh-cw"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Image</th>
+                                    <th>App</th>
+                                    <th>Amount</th>
+                                    <th>Verdict</th>
+                                    <th>Risk</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i data-lucide="files"></i></div>
+                        <div class="stat-content">
+                            <h3>Total Scans</h3>
+                            <h2 id="stat-total">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i data-lucide="shield-alert"></i></div>
+                        <div class="stat-content">
+                            <h3>Fraud Detected</h3>
+                            <h2 id="stat-fraud">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i data-lucide="shield-check"></i></div>
+                        <div class="stat-content">
+                            <h3>Genuine Confirmed</h3>
+                            <h2 id="stat-genuine">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i data-lucide="activity"></i></div>
+                        <div class="stat-content">
+                            <h3>Avg Risk Score</h3>
+                            <h2 id="stat-risk">0/100</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals & Toasts container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
